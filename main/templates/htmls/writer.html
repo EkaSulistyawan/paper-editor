@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Paper Editor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    #previewContent {
+        padding: 15px;
+        line-height: 1.5;
+    }
+  </style>
+</head>
+<body class="p-5">
+
+<div class="container">
+  <h2 class="mb-4">Paper Editor</h2>
+
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Paragraph</label>
+      <textarea id="paragraph" name="paragraph" class="form-control" rows="10">{{ entry.paragraph }}</textarea>
+    </div>
+
+    <div class="d-flex justify-content-between">
+      <button type="button" id="previewBtn" class="btn btn-primary">Open Live Preview</button>
+    </div>
+  </form>
+</div>
+
+<script>
+let previewWindow = null;
+let lastSentContent = '';
+let debounceTimer = null;
+
+// Open preview window
+document.getElementById("previewBtn").addEventListener("click", () => {
+    if (!previewWindow || previewWindow.closed) {
+        previewWindow = window.open("", "PreviewWindow", "width=800,height=600,scrollbars=yes");
+        previewWindow.document.write(`
+            <html>
+            <head><title>Live Preview</title></head>
+            <body><div id="previewContent">Live preview will appear here...</div></body>
+            </html>
+        `);
+        previewWindow.document.close();
+    }
+});
+
+// Update preview after two consecutive newlines anywhere
+document.getElementById("paragraph").addEventListener("input", function() {
+    const value = this.value;
+
+    // Match two consecutive newlines anywhere
+    const doubleEnterAnywhere = /\n\s*\n/.test(value);
+
+    if (doubleEnterAnywhere && value !== lastSentContent) {
+        lastSentContent = value;
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            sendToBackend(value);
+        }, 150); // small debounce to prevent rapid requests
+    }
+});
+
+// Send content to Django backend
+function sendToBackend(content) {
+    console.log("Sending to backend:", content); // DEBUG
+
+    fetch("{% url 'preview_paragraph' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}",
+        },
+        body: JSON.stringify({ paragraph: content })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Received from backend:", data.formatted); // DEBUG
+
+        if (!previewWindow || previewWindow.closed) {
+            previewWindow = window.open("", "PreviewWindow", "width=800,height=600");
+            previewWindow.document.write("<html><head><title>Live Preview</title></head><body><div id='previewContent'></div></body></html>");
+            previewWindow.document.close();
+        }
+
+        const renderedHtml = renderAddfig(data.formatted);
+        console.log("Rendered HTML:", renderedHtml); // DEBUG
+        previewWindow.document.getElementById("previewContent").innerHTML = renderedHtml;
+    });
+}
+// Convert addfig lines to actual <img> tags
+function renderAddfig(text) {
+    const lines = text.split('\n');
+    const htmlLines = lines.map(line => {
+        line = line.trim();
+        if (line.toLowerCase().startsWith('addfig ')) {
+            const filename = line.substring(7).trim();
+            if (filename) {
+                return `<img src="{{ MEDIA_URL }}${filename}" style="max-width:100%; margin:5px 0;" alt="${filename}">`;
+            }
+        }
+        return line ? line : '<br>';
+    });
+    return htmlLines.join('<br>');
+}
+</script>
+
+</body>
+</html>

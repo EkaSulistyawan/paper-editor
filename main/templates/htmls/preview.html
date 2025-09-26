@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compiled Paragraphs</title>
+    <style>
+        body {
+            font-family: Georgia, serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .paragraph {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Compiled Document</h1>
+    {% for p in paragraphs %}
+        <div class="paragraph">{{ p|safe }}</div>
+    {% endfor %}
+</body>
+<script>
+function refreshContent() {
+    fetch("/compile/json/")  // make a JSON endpoint
+        .then(res => res.json())
+        .then(data => {
+            let container = document.getElementById("content");
+            container.innerHTML = "";
+            data.paragraphs.forEach(p => {
+                let div = document.createElement("div");
+                div.className = "paragraph";
+                div.innerHTML = p;
+                container.appendChild(div);
+            });
+        });
+}
+
+setInterval(refreshContent, 2000); // refresh every 2s
+</script>
+</html>

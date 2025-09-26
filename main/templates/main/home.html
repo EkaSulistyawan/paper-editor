@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cat Fun</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #FFA500; /* orange background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            text-align: center;
+        }
+        img.logo {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 48px;
+            color: white;
+            margin-bottom: 30px;
+        }
+        button {
+            font-size: 24px;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            background-color: white;
+            color: #FFA500;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #ffcc80;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img class="logo" src="{% static 'main/cat_logo.png' %}" alt="Cat Logo">
+        <h1>Welcome to Cat Fun!</h1>
+        <button onclick="window.location.href='/doi_list/'">Start!</button>
+    </div>
+</body>
+</html>

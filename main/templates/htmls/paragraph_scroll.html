@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Scroll Page</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            line-height: 1.6;
+            scroll-behavior: smooth; /* smooth scrolling */
+        }
+        .paragraph {
+            min-height: 100vh; /* Each paragraph takes full screen height */
+            padding: 50px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #ddd;
+            scroll-snap-align: start;
+        }
+        html, body {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+        }
+        .nav-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    {% for para in paragraphs %}
+        <div class="paragraph" id="para-{{ forloop.counter0 }}">
+            <p>{{ para }}</p>
+        </div>
+    {% endfor %}
+
+    <div class="nav-buttons">
+        <button id="prevBtn">Previous</button>
+        <button id="nextBtn">Next</button>
+    </div>
+
+    <script>
+        const paragraphs = document.querySelectorAll('.paragraph');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        let currentIndex = 0;
+
+        function updateButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === paragraphs.length - 1;
+        }
+
+        function scrollToParagraph(index) {
+            paragraphs[index].scrollIntoView({ behavior: "smooth" });
+            currentIndex = index;
+            updateButtons();
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentIndex < paragraphs.length - 1) {
+                scrollToParagraph(currentIndex + 1);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentIndex > 0) {
+                scrollToParagraph(currentIndex - 1);
+            }
+        });
+
+        // initialize
+        updateButtons();
+    </script>
+</body>
+</html>
